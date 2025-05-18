@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEM Quiz - Login/Register</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 400px;
+            max-width: 90%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: white;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            color: white;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1rem;
+        }
+
+        input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 38px;
+            cursor: pointer;
+            color: rgba(255,255,255,0.7);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #6c63ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5248cc;
+        }
+
+        .switch-form {
+            text-align: center;
+            margin-top: 1rem;
+            color: white;
+        }
+
+        .switch-form a {
+            color: #d3cfff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        #error-message {
+            color: #ff6b6b;
+            text-align: center;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h2 id="form-title">Daftar Akun Baru</h2>
+        <div id="error-message"></div>
+        
+        <form id="auth-form">
+            <div class="form-group" id="username-group">
+                <label for="username">Nama Pengguna</label>
+                <input type="text" id="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required>
+                <i class="fas fa-eye password-toggle" onclick="togglePassword()"></i>
+            </div>
+            
+            <button type="submit" id="submit-btn">Daftar</button>
+        </form>
+        
+        <div class="switch-form">
+            Sudah punya akun? <a onclick="switchForm()">Masuk disini</a>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwtJYQPYCXGaHNhSxc0v_kv1GS8MNAGXI",
+            authDomain: "kuis-b4cb8.firebaseapp.com",
+            projectId: "kuis-b4cb8",
+            storageBucket: "kuis-b4cb8.firebasestorage.app",
+            messagingSenderId: "842499241086",
+            appId: "1:842499241086:web:53f914ca316ad77119142f",
+            measurementId: "G-8Q2MGB2KXW"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        let isLogin = false;
+
+        function switchForm() {
+            isLogin = !isLogin;
+            const title = document.getElementById('form-title');
+            const submitBtn = document.getElementById('submit-btn');
+            const usernameGroup = document.getElementById('username-group');
+            const switchLink = document.querySelector('.switch-form a');
+            
+            if(isLogin) {
+                title.textContent = "Masuk ke Akun Anda";
+                submitBtn.textContent = "Masuk";
+                usernameGroup.style.display = 'none';
+                switchLink.previousSibling.textContent = "Belum punya akun? ";
+                switchLink.textContent = "Daftar disini";
+            } else {
+                title.textContent = "Daftar Akun Baru";
+                submitBtn.textContent = "Daftar";
+                usernameGroup.style.display = 'block';
+                switchLink.previousSibling.textContent = "Sudah punya akun? ";
+                switchLink.textContent = "Masuk disini";
+            }
+        }
+
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const toggleIcon = document.querySelector('.password-toggle');
+            
+            if(passwordField.type === "password") {
+                passwordField.type = "text";
+                toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passwordField.type = "password";
+                toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        document.getElementById('auth-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = isLogin ? null : document.getElementById('username').value;
+            const errorMessage = document.getElementById('error-message');
+
+            errorMessage.textContent = "";
+
+            if(!isLogin && !username) {
+                errorMessage.textContent = "Nama pengguna harus diisi";
+                return;
+            }
+
+            if(password.length < 6) {
+                errorMessage.textContent = "Password minimal 6 karakter";
+                return;
+            }
+
+            if(isLogin) {
+                // Login logic
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        window.location.href = "game.html"; // Redirect ke game
+                    })
+                    .catch(error => {
+                        handleAuthError(error);
+                    });
+            } else {
+                // Register logic
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then(({ user }) => {
+                        user.updateProfile({ displayName: username })
+                            .then(() => {
+                                Swal.fire({
+                                    title: 'Pendaftaran Berhasil!',
+                                    text: 'Silakan verifikasi email Anda',
+                                    icon: 'success'
+                                });
+                            });
+                    })
+                    .catch(error => {
+                        handleAuthError(error);
+                    });
+            }
+        });
+
+        function handleAuthError(error) {
+            let message = "";
+            switch(error.code) {
+                case 'auth/email-already-in-use':
+                    message = "Email sudah terdaftar";
+                    break;
+                case 'auth/invalid-email':
+                    message = "Format email tidak valid";
+                    break;
+                case 'auth/weak-password':
+                    message = "Password terlalu lemah";
+                    break;
+                case 'auth/user-not-found':
+                    message = "Akun tidak ditemukan";
+                    break;
+                case 'auth/wrong-password':
+                    message = "Password salah";
+                    break;
+                default:
+                    message = "Terjadi kesalahan, silakan coba lagi";
+            }
+            document.getElementById('error-message').textContent = message;
+        }
+
+        // Check auth state
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                window.location.href = "game.html";
+            }
+        });
+    </script>
+</body>
+</html>
